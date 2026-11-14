@@ -1,0 +1,49 @@
+name: UniversalTranslatorIOS
+options:
+  bundleIdPrefix: com.eduardoarruda
+  deploymentTarget:
+    iOS: "16.0"
+targets:
+  UniversalTranslatorIOS:
+    type: application
+    platform: iOS
+    sources:
+      - path: UniversalTranslatorIOS/App
+        excludes:
+          - "Info.plist"
+      - path: UniversalTranslatorIOS/Shared
+      - path: UniversalTranslatorIOS/ShortcutsIntent
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.eduardoarruda.universaltranslator
+        INFOPLIST_FILE: UniversalTranslatorIOS/App/Info.plist
+        MARKETING_VERSION: "2.5.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.0"
+        CODE_SIGN_IDENTITY: ""
+        CODE_SIGNING_REQUIRED: NO
+        CODE_SIGNING_ALLOWED: NO
+        AD_HOC_CODE_SIGNING_ALLOWED: YES
+    dependencies:
+      - target: UniversalTranslatorKeyboard
+        embed: true
+        codeSign: false
+  UniversalTranslatorKeyboard:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: UniversalTranslatorIOS/KeyboardExtension
+        excludes:
+          - "Info.plist"
+      - path: UniversalTranslatorIOS/Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.eduardoarruda.universaltranslator.keyboard
+        INFOPLIST_FILE: UniversalTranslatorIOS/KeyboardExtension/Info.plist
+        MARKETING_VERSION: "2.5.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.0"
+        CODE_SIGN_IDENTITY: ""
+        CODE_SIGNING_REQUIRED: NO
+        CODE_SIGNING_ALLOWED: NO
+        AD_HOC_CODE_SIGNING_ALLOWED: YES

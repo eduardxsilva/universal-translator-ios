@@ -1,0 +1,52 @@
+name: Build iOS IPA (Universal Translator Pro)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build-ipa:
+    runs-on: macos-15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: |
+          if ! command -v xcodegen &> /dev/null; then
+            brew install xcodegen
+          fi
+
+      - name: Generate Xcode Project
+        run: xcodegen generate
+
+      - name: Build Unsigned iOS App (for Sideloadly / AltStore)
+        run: |
+          xcodebuild clean build \
+            -project UniversalTranslatorIOS.xcodeproj \
+            -scheme UniversalTranslatorIOS \
+            -sdk iphoneos \
+            -configuration Release \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            AD_HOC_CODE_SIGNING_ALLOWED=YES
+
+      - name: Ad-Hoc Sign & Package .ipa
+        run: |
+          APP_PATH="build/Build/Products/Release-iphoneos/UniversalTranslatorIOS.app"
+          if [ -d "$APP_PATH/PlugIns/UniversalTranslatorKeyboard.appex" ]; then
+            codesign --force --sign - --timestamp=none "$APP_PATH/PlugIns/UniversalTranslatorKeyboard.appex" || true
+          fi
+          codesign --force --sign - --timestamp=none "$APP_PATH" || true
+          mkdir -p Payload
+          cp -r "$APP_PATH" Payload/
+          zip -r -q UniversalTranslatorIOS.ipa Payload
+
+      - name: Upload .ipa Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: UniversalTranslatorIOS-IPA
+          path: UniversalTranslatorIOS.ipa

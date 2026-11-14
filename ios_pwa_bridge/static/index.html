@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Translator Pro" />
+  <link rel="manifest" href="/manifest.json" />
+  <title>Universal Translator Pro — iOS</title>
+  <style>
+    :root {
+      --bg: #101828;
+      --surface: #1D2939;
+      --border: #344054;
+      --primary: #2563EB;
+      --success: #16A36A;
+      --success-hover: #128456;
+      --danger: #D92D20;
+      --text: #F2F4F7;
+      --muted: #98A2B3;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      padding: env(safe-area-inset-top, 16px) 16px calc(env(safe-area-inset-bottom, 20px) + 90px) 16px;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 14px;
+    }
+    h1 { font-size: 19px; margin: 0; font-weight: 700; }
+    .subtitle { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    textarea {
+      width: 100%;
+      min-height: 105px;
+      background: #101828;
+      color: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 10px;
+      font-size: 15px;
+      resize: vertical;
+      outline: none;
+    }
+    textarea:focus { border-color: var(--primary); }
+    .btn {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: none;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #FFFFFF;
+      transition: opacity 0.15s;
+    }
+    .btn:active { opacity: 0.85; }
+    .btn-primary { background: var(--primary); }
+    .btn-success { background: var(--success); }
+    .btn-secondary {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .row { display: flex; gap: 10px; margin-top: 10px; }
+    .status-bar {
+      font-size: 12px;
+      color: #D0D5DD;
+      padding: 9px 12px;
+      background: var(--surface);
+      border-radius: 8px;
+      margin-bottom: 12px;
+      border-left: 3px solid var(--success);
+    }
+
+    /* Botão Flutuante iOS + Painel Enxuto idêntico ao Desktop */
+    #floating-container {
+      position: fixed;
+      right: 16px;
+      bottom: calc(env(safe-area-inset-bottom, 16px) + 18px);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+    }
+    #floating-panel {
+      width: 288px;
+      background: #101828;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    #floating-panel.hidden { display: none; }
+    .lang-select-wrapper {
+      position: relative;
+      width: 100%;
+    }
+    .lang-btn-select {
+      width: 100%;
+      appearance: none;
+      -webkit-appearance: none;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 9px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      outline: none;
+    }
+    #btn-translate-replace {
+      background: var(--success);
+      color: #FFFFFF;
+      border: none;
+      border-radius: 7px;
+      padding: 11px 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    #btn-close-floating {
+      background: var(--surface);
+      color: #FDA29B;
+      border: 1px solid var(--danger);
+      border-radius: 7px;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    #floating-circle {
+      width: 60px;
+      height: 60px;
+      border-radius: 30px;
+      background: var(--success);
+      border: 2px solid #0D8051;
+      color: #FFFFFF;
+      font-size: 22px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+      cursor: pointer;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Universal Translator iOS</h1>
+      <div class="subtitle">Tradução Automática & Substituição Rápida no iPhone</div>
+    </div>
+    <button id="reopen-floating-btn" class="btn btn-secondary" style="width:auto; padding:8px 12px; display:none;" onclick="reopenFloating()">
+      Ativar Botão Flutuante
+    </button>
+  </header>
+
+  <div id="status-box" class="status-bar">
+    Pronto. Selecione ou cole o texto abaixo e toque em <b>Traduzir e Substituir</b> no botão flutuante.
+  </div>
+
+  <div class="card">
+    <label for="source-text">Texto no Campo (Selecione ou Cole do WhatsApp / Instagram):</label>
+    <textarea id="source-text" placeholder="Ex: Você é muito lindo. Topa receber um dinheiro para sairmos?"></textarea>
+    <div class="row">
+      <button class="btn btn-secondary" onclick="pasteFromClipboard()">Colar Área de Transferência</button>
+      <button class="btn btn-primary" onclick="copyCurrentText()">Copiar Texto do Campo</button>
+    </div>
+  </div>
+
+  <!-- Botão Flutuante Simples com (1) Idioma Atual, (2) Idioma Pretendido, (3) Traduzir e Substituir, e (4) Fechar -->
+  <div id="floating-container">
+    <div id="floating-panel">
+      <div class="lang-select-wrapper">
+        <select id="source-lang" class="lang-btn-select">
+          <option value="PT-BR">Idioma atual: Português (Brasil) ▾</option>
+          <option value="EN-US">Idioma atual: English (EUA) ▾</option>
+          <option value="ES">Idioma atual: Español ▾</option>
+          <option value="FR">Idioma atual: Français ▾</option>
+          <option value="DE">Idioma atual: Deutsch ▾</option>
+          <option value="IT">Idioma atual: Italiano ▾</option>
+          <option value="JA">Idioma atual: 日本語 ▾</option>
+          <option value="ZH">Idioma atual: 中文 ▾</option>
+        </select>
+      </div>
+
+      <div class="lang-select-wrapper">
+        <select id="target-lang" class="lang-btn-select">
+          <option value="EN-US" selected>Idioma pretendido: English (EUA) ▾</option>
+          <option value="PT-BR">Idioma pretendido: Português (Brasil) ▾</option>
+          <option value="ES">Idioma pretendido: Español ▾</option>
+          <option value="FR">Idioma pretendido: Français ▾</option>
+          <option value="DE">Idioma pretendido: Deutsch ▾</option>
+          <option value="IT">Idioma pretendido: Italiano ▾</option>
+          <option value="JA">Idioma pretendido: 日本語 ▾</option>
+          <option value="ZH">Idioma pretendido: 中文 ▾</option>
+        </select>
+      </div>
+
+      <button id="btn-translate-replace" onclick="translateAndReplace()">
+        Traduzir e Substituir
+      </button>
+
+      <button id="btn-close-floating" onclick="closeFloating()">
+        ✕ Fechar Botão Flutuante
+      </button>
+    </div>
+
+    <div id="floating-circle" onclick="togglePanel()" title="Abrir/Fechar Painel de Tradução">
+      文
+    </div>
+  </div>
+
+  <script>
+    const sourceInput = document.getElementById('source-text');
+    const sourceLangSelect = document.getElementById('source-lang');
+    const targetLangSelect = document.getElementById('target-lang');
+    const statusBox = document.getElementById('status-box');
+    const floatingPanel = document.getElementById('floating-panel');
+    const floatingContainer = document.getElementById('floating-container');
+    const reopenBtn = document.getElementById('reopen-floating-btn');
+    const translateBtn = document.getElementById('btn-translate-replace');
+
+    function togglePanel() {
+      floatingPanel.classList.toggle('hidden');
+    }
+
+    function closeFloating() {
+      floatingContainer.style.display = 'none';
+      reopenBtn.style.display = 'inline-block';
+      statusBox.textContent = 'Botão flutuante fechado. Toque em "Ativar Botão Flutuante" no topo para reabri-lo.';
+    }
+
+    function reopenFloating() {
+      floatingContainer.style.display = 'flex';
+      floatingPanel.classList.remove('hidden');
+      reopenBtn.style.display = 'none';
+      statusBox.textContent = 'Botão flutuante reativado.';
+    }
+
+    async function pasteFromClipboard() {
+      try {
+        const clip = await navigator.clipboard.readText();
+        if (clip) {
+          sourceInput.value = clip;
+          await translateAndReplace();
+        }
+      } catch (e) {
+        statusBox.textContent = 'Cole o texto manualmente no campo acima e toque em Traduzir e Substituir.';
+      }
+    }
+
+    async function copyCurrentText() {
+      try {
+        await navigator.clipboard.writeText(sourceInput.value);
+        statusBox.textContent = 'Texto copiado para a área de transferência do iPhone!';
+      } catch (e) {}
+    }
+
+    async function translateAndReplace() {
+      let text = sourceInput.value.trim();
+      if (!text) {
+        try {
+          text = (await navigator.clipboard.readText() || '').trim();
+          if (text) sourceInput.value = text;
+        } catch (e) {}
+      }
+      if (!text) {
+        statusBox.textContent = 'Digite, selecione ou cole um texto no campo primeiro.';
+        return;
+      }
+
+      translateBtn.disabled = true;
+      translateBtn.textContent = 'Traduzindo e substituindo...';
+
+      try {
+        const res = await fetch('/api/v1/translate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: text,
+            source_lang: sourceLangSelect.value,
+            target_lang: targetLangSelect.value
+          })
+        });
+        const data = await res.json();
+        if (data.translated_text) {
+          sourceInput.value = data.translated_text;
+          if (data.detected_source_lang) {
+            for (const opt of sourceLangSelect.options) {
+              if (opt.value.startsWith(data.detected_source_lang.split('-')[0])) {
+                sourceLangSelect.value = opt.value;
+                break;
+              }
+            }
+          }
+          try { await navigator.clipboard.writeText(data.translated_text); } catch (e) {}
+          statusBox.innerHTML = '<b>Substituído e copiado!</b> (' + data.detected_source_lang + ' → ' + data.target_lang + ')';
+        } else if (data.error) {
+          statusBox.textContent = 'Erro: ' + data.error;
+        }
+      } catch (err) {
+        statusBox.textContent = 'Falha ao conectar ao motor de tradução: ' + err;
+      } finally {
+        translateBtn.disabled = false;
+        translateBtn.textContent = 'Traduzir e Substituir';
+      }
+    }
+  </script>
+</body>
+</html>

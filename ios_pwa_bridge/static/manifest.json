@@ -1,0 +1,10 @@
+{
+  "name": "Universal Translator Pro iOS",
+  "short_name": "Translator",
+  "description": "Tradutor Inteligente com Botão Flutuante para iOS",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#101828",
+  "theme_color": "#101828",
+  "orientation": "portrait"
+}
